@@ -8,6 +8,40 @@ This set of Crossplane (Nested) Compositions to provision a AWS EKS cluster was 
 
 For more info on Nested Compositions, see this post: https://vrelevant.net/crossplane-beyond-the-basics-nested-xrs-and-composition-selectors/
 
+# How to use it
+
+As described in https://docs.crossplane.io/latest/concepts/packages/#install-a-configuration use a manifest like the following to install the Configuration:
+
+```yaml
+apiVersion: pkg.crossplane.io/v1
+kind: Configuration
+metadata:
+  name: crossplane-eks-cluster
+spec:
+  package: ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.2
+```
+
+`apply -f` the file and create a Claim like shown in the `examples` folder at []`examples/claim.yaml`](examples/claim.yaml):
+
+```yaml
+apiVersion: k8s.crossplane.jonashackt.io/v1alpha1
+kind: KubernetesCluster
+metadata:
+  namespace: default
+  name: deploy-target-eks
+spec:
+  id: deploy-target-eks
+  parameters:
+    region: eu-central-1
+    nodes:
+      count: 3
+  writeConnectionSecretToRef:
+    name: eks-cluster-kubeconfig
+```
+
+
+# Building a Nested Composition for EKS with Crossplane
+
 ## Bootstrap a EKS cluster with Crossplane
 
 https://marketplace.upbound.io/providers/upbound/provider-aws-eks/

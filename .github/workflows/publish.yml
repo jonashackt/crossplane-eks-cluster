@@ -4,7 +4,7 @@ on: [push]
 
 env:
   GHCR_PAT: ${{ secrets.GHCR_PAT }}
-  CONFIGURATION_VERSION: "v0.0.1"
+  CONFIGURATION_VERSION: "v0.0.2"
 
 jobs:
   build-configuration-and-publish-to-ghcr:
