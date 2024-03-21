@@ -513,6 +513,10 @@ name: publish
 
 on: [push]
 
+env:
+  GHCR_PAT: ${{ secrets.GHCR_PAT }}
+  CONFIGURATION_VERSION: "v0.0.1"
+
 jobs:
   build-configuration-and-publish-to-ghcr:
     runs-on: ubuntu-latest
@@ -525,7 +529,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Install Crossplane CLI
         run: |
@@ -538,7 +542,7 @@ jobs:
           crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
-          crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.2 --domain=https://ghcr.io --verbose
+          crossplane xpkg push "ghcr.io/jonashackt/crossplane-eks-cluster:$CONFIGURATION_VERSION" --domain=https://ghcr.io --verbose
 ```
 
 As we added the `.github/workflows` directory with a `publish.yaml`, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
@@ -548,3 +552,15 @@ crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*"
 ```
 
 `--ignore=".github/*` won't work, since the command doesn't support to exclude directories - only wildcards IN directories.
+
+Also to prevent the following error:
+
+```shell
+crossplane: error: failed to push package file crossplane-eks-cluster-7badc365c06a.xpkg: PUT https://ghcr.io/v2/jonashackt/crossplane-eks-cluster/manifests/v0.0.2: DENIED: installation not allowed to Write organization package
+```
+
+we use the Personal Access Token (PAT) we already created above also in our GitHub Actions Workflow instead of the default `GITHUB_TOKEN` in order to have the correct permissions. Therefore create it as a new Repository Secret:
+
+![](docs/create-repository-secret.png)
+
+With this we should also be able to use a ENV var for our Configuration version or even `latest`.

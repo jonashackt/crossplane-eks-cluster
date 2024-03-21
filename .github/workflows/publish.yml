@@ -2,6 +2,10 @@ name: publish
 
 on: [push]
 
+env:
+  GHCR_PAT: ${{ secrets.GHCR_PAT }}
+  CONFIGURATION_VERSION: "v0.0.1"
+
 jobs:
   build-configuration-and-publish-to-ghcr:
     runs-on: ubuntu-latest
@@ -14,7 +18,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Install Crossplane CLI
         run: |
@@ -27,4 +31,4 @@ jobs:
           crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
-          crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.2 --domain=https://ghcr.io --verbose
+          crossplane xpkg push "ghcr.io/jonashackt/crossplane-eks-cluster:$CONFIGURATION_VERSION" --domain=https://ghcr.io --verbose
