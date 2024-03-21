@@ -39,6 +39,79 @@ spec:
     name: eks-cluster-kubeconfig
 ```
 
+Imagine a cluster (like the one bootstrapped in https://github.com/jonashackt/crossplane-argocd) and run `kubectl get crossplane`:
+
+```shell
+$ kubectl get crossplane
+NAME                                    AGE
+providerconfig.aws.upbound.io/default   7d3h
+
+NAME                                                                          HEALTHY   REVISION   IMAGE                                                STATE    DEP-FOUND   DEP-INSTALLED   AGE
+providerrevision.pkg.crossplane.io/provider-aws-ec2-150095bdd614              True      1          xpkg.upbound.io/upbound/provider-aws-ec2:v1.1.1      Active   1           1               7d3h
+providerrevision.pkg.crossplane.io/provider-aws-eks-fbb6768e46c0              True      1          xpkg.upbound.io/upbound/provider-aws-eks:v1.1.1      Active   1           1               7d3h
+providerrevision.pkg.crossplane.io/provider-aws-iam-9565c6312cd0              True      1          xpkg.upbound.io/upbound/provider-aws-iam:v1.1.1      Active   1           1               7d3h
+providerrevision.pkg.crossplane.io/upbound-provider-family-aws-11fe5ecef831   True      1          xpkg.upbound.io/upbound/provider-family-aws:v1.1.1   Active                               7d4h
+
+NAME                                                     INSTALLED   HEALTHY   PACKAGE                                              AGE
+provider.pkg.crossplane.io/provider-aws-ec2              True        True      xpkg.upbound.io/upbound/provider-aws-ec2:v1.1.1      7d3h
+provider.pkg.crossplane.io/provider-aws-eks              True        True      xpkg.upbound.io/upbound/provider-aws-eks:v1.1.1      7d3h
+provider.pkg.crossplane.io/provider-aws-iam              True        True      xpkg.upbound.io/upbound/provider-aws-iam:v1.1.1      7d3h
+provider.pkg.crossplane.io/upbound-provider-family-aws   True        True      xpkg.upbound.io/upbound/provider-family-aws:v1.1.1   7d4h
+
+NAME                                                AGE
+deploymentruntimeconfig.pkg.crossplane.io/default   7d4h
+
+NAME                                        AGE    TYPE         DEFAULT-SCOPE
+storeconfig.secrets.crossplane.io/default   7d4h   Kubernetes   crossplane-system
+```
+
+Now after applying this Configuration here, there should appear all the Compositions and XRDs:
+
+```shell
+$ kubectl get crossplane
+NAME                                                                                                       ESTABLISHED   OFFERED   AGE
+compositeresourcedefinition.apiextensions.crossplane.io/xeksclusters.eks.aws.crossplane.jonashackt.io      True          True      4s
+compositeresourcedefinition.apiextensions.crossplane.io/xkubernetesclusters.k8s.crossplane.jonashackt.io   True          True      4s
+compositeresourcedefinition.apiextensions.crossplane.io/xnetworkings.net.aws.crossplane.jonashackt.io      True          True      4s
+
+NAME                                                                         REVISION   XR-KIND              XR-APIVERSION                               AGE
+compositionrevision.apiextensions.crossplane.io/aws-eks-4c2092f              1          XEKSCluster          eks.aws.crossplane.jonashackt.io/v1alpha1   4s
+compositionrevision.apiextensions.crossplane.io/kubernetes-cluster-2b6e754   1          XKubernetesCluster   k8s.crossplane.jonashackt.io/v1alpha1       4s
+compositionrevision.apiextensions.crossplane.io/networking-3869153           1          XNetworking          net.aws.crossplane.jonashackt.io/v1alpha1   4s
+
+NAME                                                         XR-KIND              XR-APIVERSION                               AGE
+composition.apiextensions.crossplane.io/aws-eks              XEKSCluster          eks.aws.crossplane.jonashackt.io/v1alpha1   4s
+composition.apiextensions.crossplane.io/kubernetes-cluster   XKubernetesCluster   k8s.crossplane.jonashackt.io/v1alpha1       4s
+composition.apiextensions.crossplane.io/networking           XNetworking          net.aws.crossplane.jonashackt.io/v1alpha1   4s
+
+NAME                                    AGE
+providerconfig.aws.upbound.io/default   7d3h
+
+NAME                                                                          HEALTHY   REVISION   IMAGE                                              STATE    DEP-FOUND   DEP-INSTALLED   AGE
+configurationrevision.pkg.crossplane.io/crossplane-eks-cluster-edf0e1ba1b0c   True      1          ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.2   Active   4           4               6s
+
+NAME                                                     INSTALLED   HEALTHY   PACKAGE                                            AGE
+configuration.pkg.crossplane.io/crossplane-eks-cluster   True        True      ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.2   6s
+
+NAME                                                                          HEALTHY   REVISION   IMAGE                                                STATE    DEP-FOUND   DEP-INSTALLED   AGE
+providerrevision.pkg.crossplane.io/provider-aws-ec2-150095bdd614              True      1          xpkg.upbound.io/upbound/provider-aws-ec2:v1.1.1      Active   1           1               7d3h
+providerrevision.pkg.crossplane.io/provider-aws-eks-fbb6768e46c0              True      1          xpkg.upbound.io/upbound/provider-aws-eks:v1.1.1      Active   1           1               7d3h
+providerrevision.pkg.crossplane.io/provider-aws-iam-9565c6312cd0              True      1          xpkg.upbound.io/upbound/provider-aws-iam:v1.1.1      Active   1           1               7d3h
+providerrevision.pkg.crossplane.io/upbound-provider-family-aws-11fe5ecef831   True      1          xpkg.upbound.io/upbound/provider-family-aws:v1.1.1   Active                               7d4h
+
+NAME                                                     INSTALLED   HEALTHY   PACKAGE                                              AGE
+provider.pkg.crossplane.io/provider-aws-ec2              True        True      xpkg.upbound.io/upbound/provider-aws-ec2:v1.1.1      7d3h
+provider.pkg.crossplane.io/provider-aws-eks              True        True      xpkg.upbound.io/upbound/provider-aws-eks:v1.1.1      7d3h
+provider.pkg.crossplane.io/provider-aws-iam              True        True      xpkg.upbound.io/upbound/provider-aws-iam:v1.1.1      7d3h
+provider.pkg.crossplane.io/upbound-provider-family-aws   True        True      xpkg.upbound.io/upbound/provider-family-aws:v1.1.1   7d4h
+
+NAME                                                AGE
+deploymentruntimeconfig.pkg.crossplane.io/default   7d4h
+
+NAME                                        AGE    TYPE         DEFAULT-SCOPE
+storeconfig.secrets.crossplane.io/default   7d4h   Kubernetes   crossplane-system
+```
+
 
 # Building a Nested Composition for EKS with Crossplane
 
