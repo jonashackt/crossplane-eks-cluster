@@ -537,7 +537,7 @@ jobs:
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
         run: |
           echo "### Build Configuration .xpkg file"
-          crossplane xpkg build --package-root=. --ignore "examples/*" --verbose
+          crossplane xpkg build --package-root=. --ignore "examples/*,.github/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
           crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:"$KIND_NODE_VERSION" --domain=https://ghcr.io --verbose
