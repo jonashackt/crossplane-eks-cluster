@@ -1,4 +1,7 @@
 # crossplane-eks-cluster
+[![Build Status Azure](https://github.com/jonashackt/crossplane-eks-cluster/workflows/publish/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/publish.yml)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/crossplane-eks-cluster/blob/master/LICENSE)
+
 Crossplane Configuration delivering CRDs to provision AWS EKS clusters
 
 This set of Crossplane (Nested) Compositions to provision a AWS EKS cluster was originally started in https://github.com/jonashackt/crossplane-argocd - but then scaled out to a separate repository using Crossplane's [Configuration Package feature](https://docs.crossplane.io/latest/concepts/packages/) to build a OCI image from the CRDs in this repo. 
@@ -442,3 +445,100 @@ crossplane xpkg build --package-root=. --ignore "examples/*" --verbose
 Note that including YAML files that aren’t Compositions or CompositeResourceDefinitions, including Claims isn’t supported. This can be done by appending `--ignore="examples/*"`, which will ignore all the example claim.yamls in `examples` directory.
 
 Also appending `--verbose` makes a lot of sense to see what's going on.
+
+
+### Pushing the Package file .xpkg to GitHub Container Registry
+
+There's also a `crossplane xpkg push` command to publish the Configuration package. So let's create a new GitHub package matching our repository:
+
+```shell
+crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.1
+```
+
+You can leverage the Container image tag as version number for your Configuration here.
+
+If the command gives the following error, we need to setup Authentication for your Docker Registry:
+
+```shell
+crossplane: error: failed to push package file crossplane-eks-cluster-7badc365c06a.xpkg: Post "https://ghcr.io/v2/jonashackt/crossplane-eks-cluster/blobs/uploads/": GET https://ghcr.io/token?scope=repository%3Ajonashackt%2Fcrossplane-eks-cluster%3Apull&scope=repository%3Ajonashackt%2Fcrossplane-eks-cluster%3Apush%2Cpull&service=ghcr.io: DENIED: requested access to the resource is denied
+```
+
+The ` crossplane xpkg push --help` helps us:
+
+> Credentials for the registry are automatically retrieved from xpkg
+login and dockers configuration as fallback.
+
+So we need to login to GitHub Container Registry first in order to be able to push our OCI image:
+
+```shell
+echo $CR_PAT | docker login ghcr.io -u YourAccountOrGHOrgaNameHere --password-stdin
+```
+
+Make sure to use a Personal Access Token as described in this post https://www.codecentric.de/wissens-hub/blog/github-container-registry with the following scopes (`repo`, `write:packages` and `delete:packages`):
+
+![](docs/github-container-registry-pat-scopes.png)
+
+Additionally we need to add the domain configuration like this: `--domain=https://ghcr.io`. Otherwise the default domain is `upbound.io` which will lead to non pushed Configurations - only visible via the `verbose` flag.
+
+With this our `crossplane xpkg push` command should work as expected:
+
+```shell
+$ crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.1 --domain=https://ghcr.io --verbose
+2024-03-21T16:39:48+01:00	DEBUG	Found package in directory	{"path": "crossplane-eks-cluster-7badc365c06a.xpkg"}
+2024-03-21T16:39:48+01:00	DEBUG	Getting credentials for server	{"serverURL": "ghcr.io"}
+2024-03-21T16:39:48+01:00	DEBUG	No profile specified, using default profile
+2024-03-21T16:39:49+01:00	DEBUG	Pushed package	{"path": "crossplane-eks-cluster-7badc365c06a.xpkg", "ref": "ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.1"}
+```
+
+Now head over to your GitHub Organisation's `Packages` tab and search for the newly created package:
+
+![](docs/github-container-registry-package-connect-repository.png)
+
+Click onto the package and connect the GitHub Repository.
+
+Also - on the right - click on `Package settings` and scroll down to the `Danger Zone`. There click on `Change visibility` and change it to public. Now your Crossplane Configuration should be available for download without login.
+
+If everything went fine, the package / OCI image should now be visible at your repository:
+
+![](docs/github-container-registry-package-visible.png)
+
+
+### Build & Publish Crossplane Configuration Packages automatically with GitHub Actions
+
+So let's finally do it all automatically on Composition code changes (git commit/push) using GitHub Actions. We simply use a workflow at [.github/workflows/publish.yaml](.github/workflows/publish.yaml) and do all the steps from above:
+
+```yaml
+name: publish
+
+on: [push]
+
+env:
+  PACKAGE_VERSION: v0.0.1
+
+jobs:
+  build-configuration-and-publish-to-ghcr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Crossplane CLI
+        run: |
+          curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
+          sudo mv crossplane /usr/local/bin
+
+      - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
+        run: |
+          echo "### Build Configuration .xpkg file"
+          crossplane xpkg build --package-root=. --ignore "examples/*" --verbose
+
+          echo "### Publish as OCI image to GHCR"
+          crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:"$KIND_NODE_VERSION" --domain=https://ghcr.io --verbose
+```
