@@ -484,6 +484,7 @@ With this our `crossplane xpkg push` command should work as expected:
 
 ```shell
 $ crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.1 --domain=https://ghcr.io --verbose
+
 2024-03-21T16:39:48+01:00	DEBUG	Found package in directory	{"path": "crossplane-eks-cluster-7badc365c06a.xpkg"}
 2024-03-21T16:39:48+01:00	DEBUG	Getting credentials for server	{"serverURL": "ghcr.io"}
 2024-03-21T16:39:48+01:00	DEBUG	No profile specified, using default profile
@@ -537,8 +538,16 @@ jobs:
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
         run: |
           echo "### Build Configuration .xpkg file"
-          crossplane xpkg build --package-root=. --ignore "examples/*,.github/*" --verbose
+          crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
           crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:"$KIND_NODE_VERSION" --domain=https://ghcr.io --verbose
 ```
+
+As we added the `.github/workflows` directory with a `publish.yaml`, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
+
+```shell
+crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
+```
+
+`--ignore=".github/*` won't work, since the command doesn't support to exclude directories - only wildcards IN directories.
