@@ -513,9 +513,6 @@ name: publish
 
 on: [push]
 
-env:
-  PACKAGE_VERSION: v0.0.1
-
 jobs:
   build-configuration-and-publish-to-ghcr:
     runs-on: ubuntu-latest
@@ -541,7 +538,7 @@ jobs:
           crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
-          crossplane xpkg push "ghcr.io/jonashackt/crossplane-eks-cluster:$KIND_NODE_VERSION" --domain=https://ghcr.io --verbose
+          crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.1 --domain=https://ghcr.io --verbose
 ```
 
 As we added the `.github/workflows` directory with a `publish.yaml`, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
