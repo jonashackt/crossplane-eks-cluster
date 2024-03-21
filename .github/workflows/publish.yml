@@ -27,4 +27,4 @@ jobs:
           crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
-          crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.1 --domain=https://ghcr.io --verbose
+          crossplane xpkg push ghcr.io/jonashackt/crossplane-eks-cluster:latest --domain=https://ghcr.io --verbose
