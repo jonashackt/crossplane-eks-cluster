@@ -22,8 +22,42 @@ spec:
   deletionPolicy: Delete
   forProvider:
     region: eu-central-1
-    vpcIdRef:
-      name: deploy-target-eks
+    vpcIdSelector:
+      matchControllerRef: true
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  labels:
+    access: public
+    crossplane.io/claim-name: deploy-target-eks
+    net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+    zone: eu-central-1a
+spec:
+  forProvider:
+    availabilityZone: eu-central-1a
+    cidrBlock: 10.0.0.0/24
+    mapPublicIpOnLaunch: true
+    privateDnsHostnameTypeOnLaunch: ip-name
+    region: eu-central-1
+    vpcIdSelector:
+      matchControllerRef: true
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  labels:
+    access: public
+    crossplane.io/claim-name: deploy-target-eks
+    net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+    zone: eu-central-1b
+spec:
+  forProvider:
+    availabilityZone: eu-central-1b
+    cidrBlock: 10.0.1.0/24
+    mapPublicIpOnLaunch: true
+    privateDnsHostnameTypeOnLaunch: ip-name
+    region: eu-central-1
     vpcIdSelector:
       matchControllerRef: true
 ---
@@ -42,8 +76,6 @@ spec:
     mapPublicIpOnLaunch: true
     privateDnsHostnameTypeOnLaunch: ip-name
     region: eu-central-1
-    vpcIdRef:
-      name: deploy-target-eks
     vpcIdSelector:
       matchControllerRef: true
 ---
