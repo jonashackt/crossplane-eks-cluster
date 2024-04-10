@@ -461,7 +461,31 @@ ip-10-0-2-90.eu-central-1.compute.internal    Ready    <none>   34m   v1.29.0-ek
 ```
 
 
-## Building a Configuration Package as OCI container
+
+# Testing the Managed Resources Rendering with kuttl
+
+As described in this project: https://github.com/jonashackt/crossplane-kuttl we'll use https://kuttl.dev to create tests for our EKS Cluster Composition.
+
+```shell
+# Run kuttl tests
+kubectl kuttl test
+```
+
+To run multiple tests, you don't need to setup kind and Crossplane incl. it's Providers every time simply run:
+
+```shell
+# Only once:
+kubectl kuttl test --skip-cluster-delete
+# and the following runs:
+kubectl kuttl test --start-kind=false
+```
+
+Tests can be found in the exact reflective order as in `apis` under `tests/compositions`.
+
+
+
+
+# Building a Configuration Package as OCI container
 
 https://docs.crossplane.io/latest/concepts/packages/#create-a-configuration
 
@@ -618,7 +642,12 @@ So let's finally do it all automatically on Composition code changes (git commit
 ```yaml
 name: publish
 
-on: [push]
+# Only trigger, when the resouces-rendering-test workflow succeeded
+on:
+  workflow_run:
+    workflows: ["resouces-rendering-test"]
+    types:
+      - completed
 
 env:
   GHCR_PAT: ${{ secrets.GHCR_PAT }}
@@ -651,6 +680,8 @@ jobs:
           echo "### Publish as OCI image to GHCR"
           crossplane xpkg push "ghcr.io/jonashackt/crossplane-eks-cluster:$CONFIGURATION_VERSION" --domain=https://ghcr.io --verbose
 ```
+
+Firstly we should only trigger the publish workflow, if [the kuttl rendering test](.github/workflows/resouces-rendering-test.yml) has succeeded. Therefore we use the `workflow_run` statement [as described here](https://stackoverflow.com/a/65698892/4964553).
 
 As we added the `.github/workflows` directory with a `publish.yaml`, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
 
