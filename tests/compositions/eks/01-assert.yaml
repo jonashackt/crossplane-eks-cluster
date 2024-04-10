@@ -1,0 +1,59 @@
+apiVersion: eks.aws.upbound.io/v1beta1
+kind: Cluster
+metadata:
+  labels:
+    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/claim-namespace: default
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    region: eu-central-1
+    roleArnSelector:
+      matchControllerRef: true
+      matchLabels:
+        role: clusterRole
+    version: "1.29"
+---
+apiVersion: eks.aws.upbound.io/v1beta1
+kind: ClusterAuth
+metadata:
+  labels:
+    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/claim-namespace: default
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    clusterName: deploy-target-eks
+    clusterNameSelector:
+      matchControllerRef: true
+    region: eu-central-1
+---
+apiVersion: eks.aws.upbound.io/v1beta1
+kind: NodeGroup
+metadata:
+  labels:
+    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/claim-namespace: default
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    clusterName: deploy-target-eks
+    clusterNameSelector:
+      matchControllerRef: true
+    instanceTypes:
+    - t3.medium
+    nodeRoleArnSelector:
+      matchControllerRef: true
+      matchLabels:
+        role: nodegroup
+    region: eu-central-1
+    scalingConfig:
+    - desiredSize: 3
+      maxSize: 10
+      minSize: 1
+    subnetIdSelector:
+      matchLabels:
+        access: public
+        net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+
+

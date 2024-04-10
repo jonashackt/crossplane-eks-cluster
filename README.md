@@ -482,13 +482,21 @@ kubectl kuttl test --start-kind=false
 
 Tests can be found in the exact reflective order as in `apis` under `tests/compositions`.
 
-If an error occurs like 
+If an error occurs like `key is missing from map`:
 
 ```shell
 case.go:366: resource VPC:/: .spec.forProvider.instanceTenancy: key is missing from map
 ```
 
 one needs to delete that entry from the `01-assert.yaml`.
+
+Even if something appears like 
+
+```shell
+resource Subnet:/: .metadata.labels.zone: value mismatch, expected: eu-central-1a != actual: eu-central-1b
+```
+
+Fix the `key is missing from map` first! Then the others might disappear.
 
 
 
