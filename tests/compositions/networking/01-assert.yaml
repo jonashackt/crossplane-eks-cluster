@@ -1,0 +1,61 @@
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: VPC
+metadata:
+  labels:
+    crossplane.io/claim-name: deploy-target-eks
+    net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+spec:
+  forProvider:
+    cidrBlock: 10.0.0.0/16
+    enableDnsHostnames: true
+    enableDnsSupport: true
+    instanceTenancy: default
+    region: eu-central-1
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: InternetGateway
+metadata:
+  labels:
+    crossplane.io/claim-name: deploy-target-eks
+    net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    region: eu-central-1
+    vpcIdRef:
+      name: deploy-target-eks
+    vpcIdSelector:
+      matchControllerRef: true
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  labels:
+    access: public
+    crossplane.io/claim-name: deploy-target-eks
+    net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+    zone: eu-central-1c
+spec:
+  forProvider:
+    availabilityZone: eu-central-1c
+    cidrBlock: 10.0.2.0/24
+    mapPublicIpOnLaunch: true
+    privateDnsHostnameTypeOnLaunch: ip-name
+    region: eu-central-1
+    vpcIdRef:
+      name: deploy-target-eks
+    vpcIdSelector:
+      matchControllerRef: true
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: SecurityGroup
+metadata:
+  labels:
+    crossplane.io/claim-name: deploy-target-eks
+    net.aws.crossplane.jonashackt.io: securitygroup-cluster
+    net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+spec:
+  forProvider:
+    description: cluster API server access
+    name: securitygroup-cluster
+    region: eu-central-1

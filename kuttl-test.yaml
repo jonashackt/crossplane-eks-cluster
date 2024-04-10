@@ -1,0 +1,24 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestSuite
+commands:
+  # Install Crossplane via Helm Renovate enabled (see https://stackoverflow.com/a/71765472/4964553)
+  - command: helm dependency update crossplane/install
+  - command: helm upgrade --install --force crossplane --namespace crossplane-system crossplane/install --create-namespace --wait
+
+  # Install the needed Crossplane Providers
+  - command: kubectl apply -f crossplane/provider/upbound-provider-aws-ec2.yaml
+  - command: kubectl apply -f crossplane/provider/upbound-provider-aws-iam.yaml
+  - command: kubectl apply -f crossplane/provider/upbound-provider-aws-eks.yaml
+  # Wait until AWS Provider is up and running
+  - command: kubectl wait --for=condition=healthy --timeout=180s provider/upbound-provider-aws-ec2
+  - command: kubectl wait --for=condition=healthy --timeout=180s provider/upbound-provider-aws-iam
+  - command: kubectl wait --for=condition=healthy --timeout=180s provider/upbound-provider-aws-eks
+
+  # Create AWS Provider secret without AWS access
+  - command: kubectl apply -f crossplane/provider/non-access-secret.yaml
+  # Create ProviderConfig to consume the Secret containing AWS credentials
+  - command: kubectl apply -f crossplane/provider/provider-config-aws.yaml
+testDirs:
+  - tests/compositions/
+startKIND: true
+kindContext: crossplane-eks-cluster-test

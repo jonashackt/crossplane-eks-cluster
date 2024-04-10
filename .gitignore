@@ -1,2 +1,10 @@
 # Don't check in credentials
 *.xpkg
+ekskubeconfig
+
+# Exclude Helm charts lock and packages
+**/**/charts
+**/**/Chart.lock
+
+kubeconfig
+kind-logs-*
