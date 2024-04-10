@@ -27,7 +27,10 @@ jobs:
 
       - name: Install Crossplane CLI
         run: |
-          curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
+          # This currently gives an error: Failed to download Crossplane CLI. Please make sure version current exists on channel stable.
+          # curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
+          # So using manual download, see https://docs.crossplane.io/latest/cli/
+          curl -sfLo crossplane "https://releases.crossplane.io/stable/current/bin/linux_amd64/crank"
           sudo mv crossplane /usr/local/bin
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
