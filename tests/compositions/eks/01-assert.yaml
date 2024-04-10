@@ -12,7 +12,6 @@ spec:
       matchControllerRef: true
       matchLabels:
         role: clusterRole
-    version: "1.29"
 ---
 apiVersion: eks.aws.upbound.io/v1beta1
 kind: ClusterAuth
