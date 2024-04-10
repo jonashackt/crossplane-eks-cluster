@@ -499,6 +499,14 @@ resource Subnet:/: .metadata.labels.zone: value mismatch, expected: eu-central-1
 Fix the `key is missing from map` first! Then the others might disappear.
 
 
+Also for better readability, we run the kuttl tests one after another by using the `parallel: 1` configuration in the [`kuttl-test.yaml](kuttl-test.yaml):
+
+```yaml
+...
+parallel: 1 # use parallel: 1 to execute one test after another (e.g. for better readability in CI logs)
+```
+
+
 
 # Building a Configuration Package as OCI container
 

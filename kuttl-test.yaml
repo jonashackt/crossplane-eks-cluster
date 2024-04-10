@@ -20,5 +20,6 @@ commands:
   - command: kubectl apply -f crossplane/provider/provider-config-aws.yaml
 testDirs:
   - tests/compositions/
+parallel: 1 # use parallel: 1 to execute one test after another (e.g. for better readability in CI logs)
 startKIND: true
 kindContext: crossplane-eks-cluster-test
