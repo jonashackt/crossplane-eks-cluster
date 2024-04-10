@@ -22,8 +22,6 @@ spec:
   deletionPolicy: Delete
   forProvider:
     region: eu-central-1
-    vpcIdSelector:
-      matchControllerRef: true
 ---
 apiVersion: ec2.aws.upbound.io/v1beta1
 kind: Subnet
@@ -38,10 +36,7 @@ spec:
     availabilityZone: eu-central-1a
     cidrBlock: 10.0.0.0/24
     mapPublicIpOnLaunch: true
-    privateDnsHostnameTypeOnLaunch: ip-name
     region: eu-central-1
-    vpcIdSelector:
-      matchControllerRef: true
 ---
 apiVersion: ec2.aws.upbound.io/v1beta1
 kind: Subnet
@@ -56,10 +51,7 @@ spec:
     availabilityZone: eu-central-1b
     cidrBlock: 10.0.1.0/24
     mapPublicIpOnLaunch: true
-    privateDnsHostnameTypeOnLaunch: ip-name
     region: eu-central-1
-    vpcIdSelector:
-      matchControllerRef: true
 ---
 apiVersion: ec2.aws.upbound.io/v1beta1
 kind: Subnet
@@ -74,10 +66,7 @@ spec:
     availabilityZone: eu-central-1c
     cidrBlock: 10.0.2.0/24
     mapPublicIpOnLaunch: true
-    privateDnsHostnameTypeOnLaunch: ip-name
     region: eu-central-1
-    vpcIdSelector:
-      matchControllerRef: true
 ---
 apiVersion: ec2.aws.upbound.io/v1beta1
 kind: SecurityGroup
