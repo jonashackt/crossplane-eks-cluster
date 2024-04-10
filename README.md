@@ -482,8 +482,14 @@ kubectl kuttl test --start-kind=false
 
 Tests can be found in the exact reflective order as in `apis` under `tests/compositions`.
 
+If an error occurs like 
 
-> Even if we don't create actual AWS resources, we need to configure them in GitHub Actions.
+```shell
+case.go:366: resource VPC:/: .spec.forProvider.instanceTenancy: key is missing from map
+```
+
+one needs to delete that entry from the `01-assert.yaml`.
+
 
 
 # Building a Configuration Package as OCI container
