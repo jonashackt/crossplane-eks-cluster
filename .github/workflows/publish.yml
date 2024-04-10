@@ -1,6 +1,11 @@
 name: publish
 
-on: [push]
+# Only trigger, when the resouces-rendering-test workflow succeeded
+on:
+  workflow_run:
+    workflows: ["resouces-rendering-test"]
+    types:
+      - completed
 
 env:
   GHCR_PAT: ${{ secrets.GHCR_PAT }}
