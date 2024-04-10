@@ -1,6 +1,7 @@
 # crossplane-eks-cluster
-[![Build Status Azure](https://github.com/jonashackt/crossplane-eks-cluster/workflows/publish/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/publish.yml)
+[![resouces-rendering-test](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/resouces-rendering-test.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/resouces-rendering-test.yml)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/crossplane-eks-cluster/blob/master/LICENSE)
+[![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 
 Crossplane Configuration delivering CRDs to provision AWS EKS clusters
 
