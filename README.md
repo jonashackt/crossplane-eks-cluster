@@ -483,6 +483,7 @@ kubectl kuttl test --start-kind=false
 Tests can be found in the exact reflective order as in `apis` under `tests/compositions`.
 
 
+> Even if we don't create actual AWS resources, we need to configure them in GitHub Actions.
 
 
 # Building a Configuration Package as OCI container
