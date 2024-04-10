@@ -22,7 +22,6 @@ metadata:
 spec:
   deletionPolicy: Delete
   forProvider:
-    clusterName: deploy-target-eks
     clusterNameSelector:
       matchControllerRef: true
     region: eu-central-1
@@ -36,7 +35,6 @@ metadata:
 spec:
   deletionPolicy: Delete
   forProvider:
-    clusterName: deploy-target-eks
     clusterNameSelector:
       matchControllerRef: true
     instanceTypes:
