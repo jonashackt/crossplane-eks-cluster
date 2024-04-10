@@ -9,7 +9,6 @@ spec:
     cidrBlock: 10.0.0.0/16
     enableDnsHostnames: true
     enableDnsSupport: true
-    instanceTenancy: default
     region: eu-central-1
 ---
 apiVersion: ec2.aws.upbound.io/v1beta1
