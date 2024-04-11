@@ -1,5 +1,5 @@
 # crossplane-eks-cluster
-[![resouces-rendering-test](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/test-composition-and-publish-to-ghcr.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/test-composition-and-publish-to-ghcr.yml)
+[![test-composition-and-publish-to-ghcr](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/test-composition-and-publish-to-ghcr.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/test-composition-and-publish-to-ghcr.yml)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/crossplane-eks-cluster/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 
