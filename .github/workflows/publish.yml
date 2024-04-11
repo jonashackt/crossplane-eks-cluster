@@ -32,6 +32,7 @@ jobs:
       - name: Install Crossplane CLI
         run: |
           curl --output crank "https://releases.crossplane.io/stable/current/bin/linux_amd64/crank"
+          chmod +x crank
           sudo mv crank /usr/local/bin/crossplane
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
