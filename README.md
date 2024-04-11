@@ -681,6 +681,7 @@ jobs:
 
 jobs:
   build-configuration-and-publish-to-ghcr:
+    needs: resouces-rendering-test
     runs-on: ubuntu-latest
 
     steps:
