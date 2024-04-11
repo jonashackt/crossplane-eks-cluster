@@ -1,6 +1,5 @@
 # crossplane-eks-cluster
-[![resouces-rendering-test](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/resouces-rendering-test.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/resouces-rendering-test.yml)
-[![publish](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/publish.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/publish.yml)
+[![resouces-rendering-test](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/test-composition-and-publish-to-ghcr.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/test-composition-and-publish-to-ghcr.yml)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/crossplane-eks-cluster/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 
@@ -665,21 +664,20 @@ If everything went fine, the package / OCI image should now be visible at your r
 
 ### Build & Publish Crossplane Configuration Packages automatically with GitHub Actions
 
-So let's finally do it all automatically on Composition code changes (git commit/push) using GitHub Actions. We simply use a workflow at [.github/workflows/publish.yaml](.github/workflows/publish.yaml) and do all the steps from above:
+So let's finally do it all automatically on Composition code changes (git commit/push) using GitHub Actions. We simply extend our workflow at [.github/workflows/test-composition-and-publish-to-ghcr.yml](.github/workflows/test-composition-and-publish-to-ghcr.yml) and do all the steps from above:
 
 ```yaml
 name: publish
 
-# Only trigger, when the resouces-rendering-test workflow succeeded
-on:
-  workflow_run:
-    workflows: ["resouces-rendering-test"]
-    types:
-      - completed
+on: [push]
 
 env:
   GHCR_PAT: ${{ secrets.GHCR_PAT }}
-  CONFIGURATION_VERSION: "v0.0.1"
+  CONFIGURATION_VERSION: "v0.0.2"
+
+jobs:
+  resouces-rendering-test:
+    ...
 
 jobs:
   build-configuration-and-publish-to-ghcr:
@@ -703,15 +701,13 @@ jobs:
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
         run: |
           echo "### Build Configuration .xpkg file"
-          crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
+          crossplane xpkg build --package-root=. --examples-root="./examples" --ignore=".github/workflows/*,crossplane/install/*,crossplane/provider/*,kuttl-test.yaml,tests/compositions/eks/*,tests/compositions/networking/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
           crossplane xpkg push "ghcr.io/jonashackt/crossplane-eks-cluster:$CONFIGURATION_VERSION" --domain=https://ghcr.io --verbose
 ```
 
-Firstly we should only trigger the publish workflow, if [the kuttl rendering test](.github/workflows/resouces-rendering-test.yml) has succeeded. Therefore we use the `workflow_run` statement [as described here](https://stackoverflow.com/a/65698892/4964553).
-
-As we added the `.github/workflows` directory with a `publish.yaml`, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
+As we added the `.github/workflows` directory with a workflow yaml file, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
 
 ```shell
 crossplane xpkg build --package-root=. --examples-root="./examples" --ignore=".github/workflows/*,crossplane/install/*,crossplane/provider/*,kuttl-test.yaml,tests/compositions/eks/*,tests/compositions/networking/*" --verbose
