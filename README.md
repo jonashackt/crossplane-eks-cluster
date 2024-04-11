@@ -727,3 +727,9 @@ we use the Personal Access Token (PAT) we already created above also in our GitH
 ![](docs/create-repository-secret.png)
 
 With this we should also be able to use a ENV var for our Configuration version or even `latest`.
+
+To prevent the `build-configuration-and-publish-to-ghcr` step from running before the test job successfully finished, [we use the `needs: resouces-rendering-test` keyword as described here](https://stackoverflow.com/a/65698892/4964553).
+
+Now our Pipeline should look like this:
+
+![](docs/only-publish-when-test-successful-pipeline.png)
