@@ -1,5 +1,6 @@
 # crossplane-eks-cluster
 [![resouces-rendering-test](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/resouces-rendering-test.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/resouces-rendering-test.yml)
+[![publish](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/publish.yml/badge.svg)](https://github.com/jonashackt/crossplane-eks-cluster/actions/workflows/publish.yml)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/crossplane-eks-cluster/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 
@@ -528,11 +529,12 @@ Install crossplane CLI:
 curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
 ```
 
-If that produces an error, try to manually craft the download link:
+If that produces an error like `Failed to download Crossplane CLI. Please make sure version current exists on channel stable.`, try to manually craft the download link:
 
 ```shell
-curl -sfLo crossplane "https://releases.crossplane.io/stable/v1.15.0/bin/linux_amd64/crank"
-sudo mv crossplane /usr/local/bin
+curl --output crank "https://releases.crossplane.io/stable/current/bin/linux_amd64/crank"
+chmod +x crank
+sudo mv crank /usr/local/bin/crossplane
 ```
 
 Be sure to have the `v1.15.0` version installed as a minimum, otherwise the `crossplane beta validate` command won't work:
@@ -594,10 +596,12 @@ The command uses the following template: https://github.com/crossplane/configura
 The Crossplane CLI [has the right command for us](https://docs.crossplane.io/latest/concepts/packages/#build-the-package):
 
 ```shell
-crossplane xpkg build --package-root=. --ignore "examples/*" --verbose
+crossplane xpkg build --package-root=. --examples-root="./examples" --ignore=".github/workflows/*,crossplane/install/*,crossplane/provider/*,kuttl-test.yaml,tests/compositions/eks/*,tests/compositions/networking/*" --verbose
 ```
 
-Note that including YAML files that aren’t Compositions or CompositeResourceDefinitions, including Claims isn’t supported. This can be done by appending `--ignore="examples/*"`, which will ignore all the example claim.yamls in `examples` directory.
+Note that including YAML files that aren’t Compositions or CompositeResourceDefinitions, including Claims isn’t supported.
+
+This can be done by appending `--ignore="file.xyz,directory/*"`, which will ignore a file `file.xyz` and all files in directory `directory`. [Sadly, ingoring directories completely isn't supported right now](https://docs.crossplane.io/latest/concepts/packages/#build-the-package) - so we need to define all our kuttl test directories respectively.
 
 Also appending `--verbose` makes a lot of sense to see what's going on.
 
@@ -710,7 +714,7 @@ Firstly we should only trigger the publish workflow, if [the kuttl rendering tes
 As we added the `.github/workflows` directory with a `publish.yaml`, the `crossplane xpkg build` command also tries to include it. Therefore the command locally need to exclude the workflow file also:
 
 ```shell
-crossplane xpkg build --package-root=. --ignore=".github/workflows/*,examples/*" --verbose
+crossplane xpkg build --package-root=. --examples-root="./examples" --ignore=".github/workflows/*,crossplane/install/*,crossplane/provider/*,kuttl-test.yaml,tests/compositions/eks/*,tests/compositions/networking/*" --verbose
 ```
 
 `--ignore=".github/*` won't work, since the command doesn't support to exclude directories - only wildcards IN directories.
