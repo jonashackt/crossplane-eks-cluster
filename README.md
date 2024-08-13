@@ -11,7 +11,11 @@ Crossplane Configuration delivering CRDs to provision AWS EKS clusters
 
 This set of Crossplane (Nested) Compositions to provision a AWS EKS cluster was originally started in https://github.com/jonashackt/crossplane-argocd - but then scaled out to a separate repository using Crossplane's [Configuration Package feature](https://docs.crossplane.io/latest/concepts/packages/) to build a OCI image from the CRDs in this repo. 
 
-For more info on Nested Compositions, see this post: https://vrelevant.net/crossplane-beyond-the-basics-nested-xrs-and-composition-selectors/
+There's not really much documentation about Nested Compositions. There's [this section in the upbound docs about "Layering composite resources"](https://docs.upbound.io/xp-arch-framework/building-apis/building-apis-compositions/#layering-composite-resources).
+
+Only some hints [like this about the role of the `XRD.status` field](https://docs.upbound.io/xp-arch-framework/building-apis/building-apis-xrds/#xrd-status).
+
+Most information [is provided by this blog post](https://vrelevant.net/crossplane-beyond-the-basics-nested-xrs-and-composition-selectors/) and some examples like [this (watch out, this is based on the crossplane aws provider!)](https://github.com/cem-altuner/crossplane-prod-ready-eks) and [this](https://github.com/upbound/configuration-eks).
 
 # How to use it
 
@@ -127,9 +131,9 @@ https://marketplace.upbound.io/providers/upbound/provider-aws-eks/
 Inspiration taken from https://github.com/cem-altuner/crossplane-prod-ready-eks (watch out, this is based on the crossplane aws provider!), https://github.com/upbound/configuration-eks 
 
 
-### Add EKS and ECS Providers
+### Add EKS, ECS & IAM Providers
 
-We first need to add 2 more Crossplane Providers from the upbound provider families: `provider-aws-eks` and `provider-aws-ec2`.
+We first need to add 3 more Crossplane Providers from the upbound provider families: `provider-aws-eks` and `provider-aws-ec2`.
 
 [`upbound/provider-aws/provider/provider-aws-eks.yaml`](upbound/provider-aws/provider/provider-aws-eks.yaml):
 
@@ -137,49 +141,474 @@ We first need to add 2 more Crossplane Providers from the upbound provider famil
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
-  name: provider-aws-eks
+  name: upbound-provider-aws-eks
 spec:
-  package: xpkg.upbound.io/upbound/provider-aws-eks:v1.1.0
-  packagePullPolicy: Always
-  revisionActivationPolicy: Automatic
+  package: xpkg.upbound.io/upbound/provider-aws-eks:v1.2.1
+  packagePullPolicy: IfNotPresent # Only download the package if it isn’t in the cache.
+  revisionActivationPolicy: Automatic # Otherwise our Provider never gets activate & healthy
   revisionHistoryLimit: 1
 ```
 
-and the [`upbound/provider-aws/provider/provider-aws-ec2.yaml`](upbound/provider-aws/provider/provider-aws-ec2.yaml):
+the [`upbound/provider-aws/provider/provider-aws-ec2.yaml`](upbound/provider-aws/provider/provider-aws-ec2.yaml):
 
 ```yaml
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
-  name: provider-aws-ec2
+  name: upbound-provider-aws-ec2
 spec:
-  package: xpkg.upbound.io/upbound/provider-aws-ec2:v1.1.0
-  packagePullPolicy: Always
-  revisionActivationPolicy: Automatic
+  package: xpkg.upbound.io/upbound/provider-aws-ec2:v1.2.1
+  packagePullPolicy: IfNotPresent # Only download the package if it isn’t in the cache.
+  revisionActivationPolicy: Automatic # Otherwise our Provider never gets activate & healthy
   revisionHistoryLimit: 1
 ```
 
-Our already present Argo `Application` should be able to automatically pull the new Providers too without further changes:
+and the [`crossplane/provider/upbound-provider-aws-iam.yaml`](crossplane/provider/upbound-provider-aws-iam.yaml):
 
-![](docs/multiple-crossplane-provider.png)
+```yaml
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-aws-iam
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-iam:v1.2.1
+  packagePullPolicy: IfNotPresent # Only download the package if it isn’t in the cache.
+  revisionActivationPolicy: Automatic # Otherwise our Provider never gets activate & healthy
+  revisionHistoryLimit: 1
+```
 
 
 
 ### The EC2 Networking Composition
 
-Can be found in `upbound/provider-aws/apis/networking`:
+Can be found in `apis/networking/` directory:
 
-* XRD: [`upbound/provider-aws/apis/eks/definition.yaml`](upbound/provider-aws/apis/eks/definition.yaml)
-* Composition: [`upbound/provider-aws/apis/networking/composition.yaml`](upbound/provider-aws/apis/networking/composition.yaml)
+* XRD: [`apis/networking/definition.yaml`](apis/networking/definition.yaml)
+
+
+<details>
+  <summary>expand full yaml</summary>
+
+  ```yaml
+  apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xnetworkings.net.aws.crossplane.jonashackt.io
+spec:
+  group: net.aws.crossplane.jonashackt.io
+  names:
+    kind: XNetworking
+    plural: xnetworkings
+  claimNames:
+    kind: Networking
+    plural: networkings
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            # defining input parameters
+            spec:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: ID of this Network that other objects will use to refer to it.
+                parameters:
+                  type: object
+                  description: Network configuration parameters.
+                  properties:
+                    region:
+                      type: string
+                  required:
+                    - region
+              required:
+                - id
+                - parameters
+            # defining return values
+            status:
+              type: object
+              properties:
+                subnetIds:
+                  type: array
+                  items:
+                    type: string
+                securityGroupClusterIds:
+                  type: array
+                  items:
+                    type: string
+  ```
+</details>
+
+* Composition: [`apis/networking/composition.yaml`](apis/networking/composition.yaml)
+
+<details>
+  <summary>expand full yaml</summary>
+  
+  ```yaml
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: networking
+  labels:
+    provider: aws
+spec:
+  compositeTypeRef:
+    apiVersion: net.aws.crossplane.jonashackt.io/v1alpha1
+    kind: XNetworking
+
+  writeConnectionSecretsToNamespace: crossplane-system
+
+  patchSets:
+  - name: networkconfig
+    patches:
+    - type: FromCompositeFieldPath
+      fromFieldPath: spec.id
+      toFieldPath: metadata.labels[net.aws.crossplane.jonashackt.io/network-id] # the network-id other Composition MRs (like EKSCluster) will use
+    - type: FromCompositeFieldPath
+      fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.region
+
+  resources:
+    ### VPC and InternetGateway
+    - name: platform-vcp
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: VPC
+        spec:
+          forProvider:
+            cidrBlock: 10.0.0.0/16
+            enableDnsSupport: true
+            enableDnsHostnames: true
+            tags:
+              Owner: Platform Team
+              Name: platform-vpc
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.name
+    
+    - name: gateway
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: InternetGateway
+        spec:
+          forProvider:
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+
+
+    ### Subnet Configuration
+    - name: subnet-public-eu-central-1a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            access: public
+        spec:
+          forProvider:
+            mapPublicIpOnLaunch: true
+            cidrBlock: 10.0.0.0/24
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+        # define eu-central-1a as zone & availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: metadata.labels.zone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sa"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.availabilityZone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sa"
+        # provide the subnetId for later use as status.subnetIds entry
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[0]
+    
+    - name: subnet-public-eu-central-1b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            access: public
+        spec:
+          forProvider:
+            mapPublicIpOnLaunch: true
+            cidrBlock: 10.0.1.0/24
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+          # define eu-central-1b as zone & availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: metadata.labels.zone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sb"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.availabilityZone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sb"
+          # provide the subnetId for later use as status.subnetIds entry
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[1]
+
+    - name: subnet-public-eu-central-1c
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            access: public
+        spec:
+          forProvider:
+            mapPublicIpOnLaunch: true
+            cidrBlock: 10.0.2.0/24
+            vpcIdSelector:
+              matchControllerRef: true
+            tags:
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+          # define eu-central-1c as zone & availabilityZone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: metadata.labels.zone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sc"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.availabilityZone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sc"
+          # provide the subnetId for later use as status.subnetIds entry
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[2]  
+
+    ### SecurityGroup & SecurityGroupRules Cluster API server
+    - name: securitygroup-cluster
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroup
+        metadata:
+          labels:
+            net.aws.crossplane.jonashackt.io: securitygroup-cluster
+        spec:
+          forProvider:
+            description: cluster API server access
+            name: securitygroup-cluster
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.name
+          # provide the securityGroupId for later use as status.securityGroupClusterIds entry
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.securityGroupClusterIds[0]
+
+    - name: securitygrouprule-cluster-inbound
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupRule
+        spec:
+          forProvider:
+            #description: Allow pods to communicate with the cluster API server & access API server from kubectl clients
+            type: ingress
+            cidrBlocks:
+              - 0.0.0.0/0
+            fromPort: 443
+            toPort: 443
+            protocol: tcp
+            securityGroupIdSelector:
+              matchLabels:
+                net.aws.crossplane.jonashackt.io: securitygroup-cluster
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+
+    - name: securitygrouprule-cluster-outbound
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupRule
+        spec:
+          forProvider:
+            description: Allow internet access from the cluster API server
+            type: egress
+            cidrBlocks: # Destination
+              - 0.0.0.0/0
+            fromPort: 0
+            toPort: 0
+            protocol: tcp
+            securityGroupIdSelector:
+              matchLabels:
+                net.aws.crossplane.jonashackt.io: securitygroup-cluster
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+
+    ### Route, RouteTable & RouteTableAssociations
+    - name: route
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Route
+        spec:
+          forProvider:
+            destinationCidrBlock: 0.0.0.0/0
+            gatewayIdSelector:
+              matchControllerRef: true
+            routeTableIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+
+    - name: routeTable
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTable
+        spec:
+          forProvider:
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+      - type: PatchSet
+        patchSetName: networkconfig
+
+    - name: mainRouteTableAssociation
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: MainRouteTableAssociation
+        spec:
+          forProvider:
+            routeTableIdSelector:
+              matchControllerRef: true
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+
+    - name: RouteTableAssociation-public-a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                access: public
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+        # define eu-central-1a as subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sa"
+
+    - name: RouteTableAssociation-public-b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                access: public
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+        # define eu-central-1b as subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sb"
+
+    - name: RouteTableAssociation-public-c
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                access: public
+      patches:
+        - type: PatchSet
+          patchSetName: networkconfig
+        # define eu-central-1c as subnetIdSelector.matchLabels.zone
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels.zone
+          transforms:
+            - type: string
+              string:
+                fmt: "%sc"
+  ```
+</details>
+
 
 For the start, let's simply apply our first XRD, Composition and Claim manually like that:
 
 ```shell
 # Networking XRD & Composition
-kubectl apply -f upbound/provider-aws/apis/networking/definition.yaml
-kubectl apply -f upbound/provider-aws/apis/networking/composition.yaml
+kubectl apply -f apis/networking/definition.yaml
+kubectl apply -f apis/networking/composition.yaml
 # Precheck if Network works
-kubectl apply -f upbound/provider-aws/apis/networking/claim.yaml 
+kubectl apply -f examples/networking/claim.yaml
 ```
 
 I found that the simplest way to follow what Crossplane is doing, is to look into the events ( via typing `:events`) in k9s:
@@ -265,23 +694,348 @@ There should now be an event showing up containing `Successfully composed resour
 
 ### The EKS Cluster Composition
 
-Can be found in `upbound/provider-aws/apis/eks`:
+Can be found in `apis/eks/` directory:
 
-* XRD: [`upbound/provider-aws/apis/eks/definition.yaml`](upbound/provider-aws/apis/eks/definition.yaml)
-* Composition: [`upbound/provider-aws/apis/eks/composition.yaml`](upbound/provider-aws/apis/eks/composition.yaml)
+* XRD: [`apis/eks/definition.yaml`](apis/eks/definition.yaml)
+
+<details>
+  <summary>expand full yaml</summary>
+
+  ```yaml
+  apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  # XRDs must be named 'x<plural>.<group>'
+  name: xeksclusters.eks.aws.crossplane.jonashackt.io
+spec:
+  # This XRD defines an XR in the 'crossplane.jonashackt.io' API group.
+  # The XR or Claim must use this group together with the spec.versions[0].name as it's apiVersion, like this:
+  # 'crossplane.jonashackt.io/v1alpha1'
+  group: eks.aws.crossplane.jonashackt.io
+  
+  # XR names should always be prefixed with an 'X'
+  names:
+    kind: XEKSCluster
+    plural: xeksclusters
+  # This type of XR offers a claim, which should have the same name without the 'X' prefix
+  claimNames:
+    kind: EKSCluster
+    plural: ekscluster
+  
+  # default Composition when none is specified (must match metadata.name of a provided Composition)
+  # e.g. in composition.yaml
+  defaultCompositionRef:
+    name: aws-eks
+
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    # OpenAPI schema (like the one used by Kubernetes CRDs). Determines what fields
+    # the XR (and claim) will have. Will be automatically extended by crossplane.
+    # See https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/
+    # for full CRD documentation and guide on how to write OpenAPI schemas
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          # defining input parameters
+          spec:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID of this Cluster that other objects will use to refer to it.
+              parameters:
+                type: object
+                description: EKS configuration parameters.
+                properties:
+                  # Using subnetIds & securityGroupClusterIds from XNetworking to configure VPC
+                  subnetIds:
+                    type: array
+                    items:
+                      type: string
+                  securityGroupClusterIds:
+                    type: array
+                    items:
+                      type: string
+                  region:
+                    type: string
+                  nodes:
+                    type: object
+                    description: EKS node configuration parameters.
+                    properties:
+                      count:
+                        type: integer
+                        description: Desired node count, from 1 to 10.
+                    required:
+                    - count
+                required:
+                - subnetIds
+                - securityGroupClusterIds
+                - region
+                - nodes
+            required:
+            - id
+            - parameters
+          # defining return values
+          status:
+            type: object
+            properties:
+              clusterStatus:
+                description: The status of the control plane
+                type: string
+              nodePoolStatus:
+                description: The status of the node pool
+                type: string
+  ```
+</details>
+
+* Composition: [`apis/eks/composition.yaml`](apis/eks/composition.yaml)
+
+<details>
+  <summary>expand full yaml</summary>
+
+  ```yaml
+  apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: aws-eks
+  labels:
+    provider: aws
+spec:
+  compositeTypeRef:
+    apiVersion: eks.aws.crossplane.jonashackt.io/v1alpha1
+    kind: XEKSCluster
+  
+  writeConnectionSecretsToNamespace: crossplane-system
+
+  patchSets:
+  - name: clusterconfig
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.region
+
+  resources:
+    ### Cluster Configuration
+    - name: eksCluster
+      base:
+        apiVersion: eks.aws.upbound.io/v1beta1
+        kind: Cluster
+        metadata:
+          annotations:
+            meta.upbound.io/example-id: eks/v1beta1/cluster
+            uptest.upbound.io/timeout: "2400"
+        spec:
+          forProvider:
+            roleArnSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: clusterRole
+            vpcConfig:
+              - endpointPrivateAccess: true
+                endpointPublicAccess: true
+      patches:
+        - type: PatchSet
+          patchSetName: clusterconfig
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.name
+        # Using the XNetworking defined securityGroupClusterIds & subnetIds for the vpcConfig
+        - fromFieldPath: spec.parameters.securityGroupClusterIds
+          toFieldPath: spec.forProvider.vpcConfig[0].securityGroupIds
+        - fromFieldPath: spec.parameters.subnetIds
+          toFieldPath: spec.forProvider.vpcConfig[0].subnetIds
+
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.status
+          toFieldPath: status.clusterStatus    
+      readinessChecks:
+        - type: MatchString
+          fieldPath: status.atProvider.status
+          matchString: ACTIVE
+
+    - name: kubernetesClusterAuth
+      base:
+        apiVersion: eks.aws.upbound.io/v1beta1
+        kind: ClusterAuth
+        spec:
+          forProvider:
+            clusterNameSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: clusterconfig
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.writeConnectionSecretToRef.namespace
+        - fromFieldPath: spec.id
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-access"
+      connectionDetails:
+        - fromConnectionSecretKey: kubeconfig
+
+    ### Cluster Role and Policies
+    - name: clusterRole
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          labels:
+            role: clusterRole
+        spec:
+          forProvider:
+            assumeRolePolicy: |
+              {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [
+                                "eks.amazonaws.com"
+                            ]
+                        },
+                        "Action": [
+                            "sts:AssumeRole"
+                        ]
+                    }
+                ]
+              }
+      
+    
+    - name: clusterRolePolicyAttachment
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        spec:
+          forProvider:
+            policyArn: arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+            roleSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: clusterRole
+
+
+    ### NodeGroup Configuration
+    - name: nodeGroupPublic
+      base:
+        apiVersion: eks.aws.upbound.io/v1beta1
+        kind: NodeGroup
+        spec:
+          forProvider:
+            clusterNameSelector:
+              matchControllerRef: true
+            nodeRoleArnSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: nodegroup
+            subnetIdSelector:
+              matchLabels:
+                access: public
+            scalingConfig:
+              - minSize: 1
+                maxSize: 10
+                desiredSize: 1
+            instanceTypes: # TODO: we can support to have that parameterized also
+              - t3.medium
+      patches:
+        - type: PatchSet
+          patchSetName: clusterconfig
+        - fromFieldPath: spec.parameters.nodes.count
+          toFieldPath: spec.forProvider.scalingConfig[0].desiredSize
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.subnetIdSelector.matchLabels[net.aws.crossplane.jonashackt.io/network-id]
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.status
+          toFieldPath: status.nodePoolStatus  
+      readinessChecks:
+      - type: MatchString
+        fieldPath: status.atProvider.status
+        matchString: ACTIVE
+
+    ### Node Role and Policies
+    - name: nodegroupRole
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          labels:
+            role: nodegroup
+        spec:
+          forProvider:
+            assumeRolePolicy: |
+              {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [
+                                "ec2.amazonaws.com"
+                            ]
+                        },
+                        "Action": [
+                            "sts:AssumeRole"
+                        ]
+                    }
+                ]
+              }
+      
+
+    - name: workerNodeRolePolicyAttachment
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        spec:
+          forProvider:
+            policyArn: arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+            roleSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: nodegroup
+      
+
+    - name: cniRolePolicyAttachment
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        spec:
+          forProvider:
+            policyArn: arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+            roleSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: nodegroup
+      
+    - name: containerRegistryRolePolicyAttachment
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        spec:
+          forProvider:
+            policyArn: arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+            roleSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: nodegroup
+      
+  ```
+</details>
 
 For testing we simply use `kubectl apply -f`:
 
 
 ```shell
 # EKS XRD & Composition
-kubectl apply -f upbound/provider-aws/apis/eks/definition.yaml
-kubectl apply -f upbound/provider-aws/apis/eks/composition.yaml
+kubectl apply -f apis/eks/definition.yaml
+kubectl apply -f apis/eks/composition.yaml
 
 # If you choose this example (non-nested) claim, be sure to change the subnetIds and securitygroupid according the the Networking claim executed before!
 
 # Precheck if EKSCluster works
-kubectl apply -f upbound/provider-aws/apis/eks/claim.yaml 
+kubectl apply -f examples/eks/claim.yaml 
 ```
 
 Errors in the events like this are normal, since the EKS Cluster needs it's time to be provisioned before NodeGroups etc. can be assigned:
@@ -347,10 +1101,10 @@ The `Successfully composed resources` message in the event `xekscluster/deploy-t
 
 ### The nested XR for Networking & EKS Cluster Compositions
 
-Can be found in `upbound/provider-aws/apis`
+Can be found in `apis/` directory:
 
-* XRD: [`upbound/provider-aws/apis/definition.yaml`](upbound/provider-aws/apis/definition.yaml)
-* Composition: [`upbound/provider-aws/apis/composition.yaml`](upbound/provider-aws/apis/composition.yaml)
+* XRD: [`apis/definition.yaml`](apis/definition.yaml)
+* Composition: [`apis/composition.yaml`](apis/composition.yaml)
 
 With this Composition we're able to use both pre-defined Compositions `XNetworking` and `XEKSCluster` and thus implement a nested Composite Resource:
 
@@ -427,11 +1181,11 @@ For the start, let's simply apply our first XRD, Composition and Claim manually 
 
 ```shell
 # Nested XRD & Composition
-kubectl apply -f upbound/provider-aws/apis/definition.yaml
-kubectl apply -f upbound/provider-aws/apis/composition.yaml
+kubectl apply -f apis/definition.yaml
+kubectl apply -f apis/composition.yaml
 
 # Check if full Cluster provisioning works
-kubectl apply -f upbound/provider-aws/apis/claim.yaml 
+kubectl apply -f examples/claim.yaml
 ```
 
 
@@ -667,6 +1421,8 @@ If everything went fine, the package / OCI image should now be visible at your r
 
 
 ### Build & Publish Crossplane Configuration Packages automatically with GitHub Actions
+
+https://docs.upbound.io/xp-arch-framework/building-apis/building-apis-configurations/#set-up-a-build-pipeline-with-github
 
 So let's finally do it all automatically on Composition code changes (git commit/push) using GitHub Actions. We simply extend our workflow at [.github/workflows/test-composition-and-publish-to-ghcr.yml](.github/workflows/test-composition-and-publish-to-ghcr.yml) and do all the steps from above:
 
