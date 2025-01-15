@@ -177,6 +177,39 @@ spec:
   revisionHistoryLimit: 1
 ```
 
+You can also use the great Crossplane CLI command `crossplane beta trace` to see all the resources in the scope of your Claim:
+
+```shell
+crossplane beta trace kubernetesclusters.k8s.crossplane.jonashackt.io/deploy-target-eks -o wide 
+NAME                                                               RESOURCE                                SYNCED   READY   STATUS
+KubernetesCluster/deploy-target-eks (default)                                                              True     True    Available
+└─ XKubernetesCluster/deploy-target-eks-chzjb                                                              True     True    Available
+   ├─ XNetworking/deploy-target-eks-chzjb-7zw9c                    compositeNetworkEKS                     True     True    Available
+   │  ├─ VPC/deploy-target-eks                                     platform-vcp                            True     True    Available
+   │  ├─ InternetGateway/deploy-target-eks-chzjb-n2gx9             gateway                                 True     True    Available
+   │  ├─ Subnet/deploy-target-eks-chzjb-fdhpp                      subnet-public-eu-central-1a             True     True    Available
+   │  ├─ Subnet/deploy-target-eks-chzjb-tt4pb                      subnet-public-eu-central-1b             True     True    Available
+   │  ├─ Subnet/deploy-target-eks-chzjb-crx5m                      subnet-public-eu-central-1c             True     True    Available
+   │  ├─ SecurityGroup/deploy-target-eks                           securitygroup-cluster                   True     True    Available
+   │  ├─ SecurityGroupRule/deploy-target-eks-chzjb-8wlkv           securitygrouprule-cluster-inbound       True     True    Available
+   │  ├─ SecurityGroupRule/deploy-target-eks-chzjb-tjtxz           securitygrouprule-cluster-outbound      True     True    Available
+   │  ├─ Route/deploy-target-eks-chzjb-wh7gl                       route                                   True     True    Available
+   │  ├─ RouteTable/deploy-target-eks-chzjb-wc5lh                  routeTable                              True     True    Available
+   │  ├─ MainRouteTableAssociation/deploy-target-eks-chzjb-xsgss   mainRouteTableAssociation               True     True    Available
+   │  ├─ RouteTableAssociation/deploy-target-eks-chzjb-9gt7h       RouteTableAssociation-public-a          True     True    Available
+   │  ├─ RouteTableAssociation/deploy-target-eks-chzjb-px4g5       RouteTableAssociation-public-b          True     True    Available
+   │  └─ RouteTableAssociation/deploy-target-eks-chzjb-mzlqh       RouteTableAssociation-public-c          True     True    Available
+   └─ XEKSCluster/deploy-target-eks-chzjb-fcmp7                    compositeClusterEKS                     True     True    Available
+      ├─ Cluster/deploy-target-eks                                 eksCluster                              True     True    Available
+      ├─ ClusterAuth/deploy-target-eks-chzjb-4hq4d                 kubernetesClusterAuth                   True     True    Available
+      ├─ Role/deploy-target-eks-chzjb-mdmx9                        clusterRole                             True     True    Available
+      ├─ RolePolicyAttachment/deploy-target-eks-chzjb-wwvws        clusterRolePolicyAttachment             True     True    Available
+      ├─ NodeGroup/deploy-target-eks-chzjb-zt66c                   nodeGroupPublic                         True     True    Available
+      ├─ Role/deploy-target-eks-chzjb-ccvgp                        nodegroupRole                           True     True    Available
+      ├─ RolePolicyAttachment/deploy-target-eks-chzjb-bbgrr        workerNodeRolePolicyAttachment          True     True    Available
+      ├─ RolePolicyAttachment/deploy-target-eks-chzjb-nk2m4        cniRolePolicyAttachment                 True     True    Available
+      └─ RolePolicyAttachment/deploy-target-eks-chzjb-tdr2b        containerRegistryRolePolicyAttachment   True     True    Available
+```
 
 
 ### The EC2 Networking Composition
