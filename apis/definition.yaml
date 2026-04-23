@@ -1,19 +1,17 @@
-apiVersion: apiextensions.crossplane.io/v1
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: xkubernetesclusters.k8s.crossplane.jonashackt.io
+  name: kubernetesclusters.k8s.crossplane.jonashackt.io
 spec:
+  scope: Namespaced
   group: k8s.crossplane.jonashackt.io
   names:
-    kind: XKubernetesCluster
-    plural: xkubernetesclusters
-  claimNames:
     kind: KubernetesCluster
     plural: kubernetesclusters
   connectionSecretKeys:
   - kubeconfig
   versions:
-  - name: v1alpha1
+  - name: v1
     served: true
     referenceable: true
     schema:

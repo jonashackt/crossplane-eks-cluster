@@ -1,4 +1,4 @@
-apiVersion: eks.aws.crossplane.jonashackt.io/v1alpha1
+apiVersion: eks.aws.crossplane.jonashackt.io/v1
 kind: EKSCluster
 metadata:
   namespace: default

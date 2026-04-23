@@ -19,7 +19,7 @@ Most information [is provided by this blog post](https://vrelevant.net/crossplan
 
 # How to use it
 
-As described in https://docs.crossplane.io/latest/concepts/packages/#install-a-configuration use a manifest like the following to install the Configuration:
+As described in https://docs.crossplane.io/latest/packages/configurations/#install-a-configuration use a manifest like the following to install the Configuration:
 
 ```yaml
 apiVersion: pkg.crossplane.io/v1
@@ -27,13 +27,13 @@ kind: Configuration
 metadata:
   name: crossplane-eks-cluster
 spec:
-  package: ghcr.io/jonashackt/crossplane-eks-cluster:v0.0.2
+  package: ghcr.io/jonashackt/crossplane-eks-cluster:v2.0.0
 ```
 
-`apply -f` the file and create a Claim like shown in the `examples` folder at []`examples/claim.yaml`](examples/claim.yaml):
+`apply -f` the file and create a XR like shown in the `examples` folder at []`examples/xr.yaml`](examples/xr.yaml):
 
 ```yaml
-apiVersion: k8s.crossplane.jonashackt.io/v1alpha1
+apiVersion: k8s.crossplane.jonashackt.io/v1
 kind: KubernetesCluster
 metadata:
   namespace: default
@@ -183,8 +183,8 @@ You can also use the great Crossplane CLI command `crossplane beta trace` to see
 crossplane beta trace kubernetesclusters.k8s.crossplane.jonashackt.io/deploy-target-eks -o wide 
 NAME                                                               RESOURCE                                SYNCED   READY   STATUS
 KubernetesCluster/deploy-target-eks (default)                                                              True     True    Available
-└─ XKubernetesCluster/deploy-target-eks-chzjb                                                              True     True    Available
-   ├─ XNetworking/deploy-target-eks-chzjb-7zw9c                    compositeNetworkEKS                     True     True    Available
+└─ KubernetesCluster/deploy-target-eks-chzjb                                                              True     True    Available
+   ├─ Networking/deploy-target-eks-chzjb-7zw9c                    compositeNetworkEKS                     True     True    Available
    │  ├─ VPC/deploy-target-eks                                     platform-vcp                            True     True    Available
    │  ├─ InternetGateway/deploy-target-eks-chzjb-n2gx9             gateway                                 True     True    Available
    │  ├─ Subnet/deploy-target-eks-chzjb-fdhpp                      subnet-public-eu-central-1a             True     True    Available
@@ -199,7 +199,7 @@ KubernetesCluster/deploy-target-eks (default)                                   
    │  ├─ RouteTableAssociation/deploy-target-eks-chzjb-9gt7h       RouteTableAssociation-public-a          True     True    Available
    │  ├─ RouteTableAssociation/deploy-target-eks-chzjb-px4g5       RouteTableAssociation-public-b          True     True    Available
    │  └─ RouteTableAssociation/deploy-target-eks-chzjb-mzlqh       RouteTableAssociation-public-c          True     True    Available
-   └─ XEKSCluster/deploy-target-eks-chzjb-fcmp7                    compositeClusterEKS                     True     True    Available
+   └─ EKSCluster/deploy-target-eks-chzjb-fcmp7                    compositeClusterEKS                     True     True    Available
       ├─ Cluster/deploy-target-eks                                 eksCluster                              True     True    Available
       ├─ ClusterAuth/deploy-target-eks-chzjb-4hq4d                 kubernetesClusterAuth                   True     True    Available
       ├─ Role/deploy-target-eks-chzjb-mdmx9                        clusterRole                             True     True    Available
@@ -1218,7 +1218,7 @@ kubectl apply -f apis/definition.yaml
 kubectl apply -f apis/composition.yaml
 
 # Check if full Cluster provisioning works
-kubectl apply -f examples/claim.yaml
+kubectl apply -f examples/xr.yaml
 ```
 
 
@@ -1227,14 +1227,14 @@ kubectl apply -f examples/claim.yaml
 
 https://docs.crossplane.io/knowledge-base/guides/connection-details/
 
-In our eks cluster [claim](upbound/provider-aws/apis/eks/claim.yaml) we defined a 
+In our eks cluster [XR](upbound/provider-aws/apis/eks/xr.yaml) we defined a 
 
 ```yaml
   writeConnectionSecretToRef:
     name: eks-cluster-kubeconfig
 ```
 
-inside our nested claim. This will create a k8s `Secret` called `eks-cluster-kubeconfig`, where the kubeconfig will be stored.
+inside our nested XR. This will create a k8s `Secret` called `eks-cluster-kubeconfig`, where the kubeconfig will be stored.
 
 Let's extract the kubeconfig:
 

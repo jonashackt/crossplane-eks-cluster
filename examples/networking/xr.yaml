@@ -1,4 +1,4 @@
-apiVersion: net.aws.crossplane.jonashackt.io/v1alpha1
+apiVersion: net.aws.crossplane.jonashackt.io/v1
 kind: Networking
 metadata:
   namespace: default
