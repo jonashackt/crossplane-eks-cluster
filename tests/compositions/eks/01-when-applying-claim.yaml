@@ -1,5 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestStep
-commands:
-  # Create the XR/Claim
-  - command: kubectl apply -f ../../../examples/eks/claim.yaml

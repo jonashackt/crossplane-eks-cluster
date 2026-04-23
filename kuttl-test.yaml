@@ -10,7 +10,7 @@ commands:
   - command: kubectl apply -f crossplane/provider/upbound-provider-aws-iam.yaml
   - command: kubectl apply -f crossplane/provider/upbound-provider-aws-eks.yaml
   # Wait until AWS Provider is up and running
-  - command: kubectl wait --for=condition=healthy --timeout=180s provider/upbound-provider-aws-ec2
+  - command: kubectl wait --for=condition=healthy --timeout=360s provider/upbound-provider-aws-ec2
   - command: kubectl wait --for=condition=healthy --timeout=180s provider/upbound-provider-aws-iam
   - command: kubectl wait --for=condition=healthy --timeout=180s provider/upbound-provider-aws-eks
 

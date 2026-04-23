@@ -4,7 +4,9 @@ commands:
   # Keep in mind that the apis dir is way up the folder hierachy relative to this TestStep!
   # Install the XRD
   - command: kubectl apply -f ../../../apis/eks/definition.yaml
+  # Install the Function
+  - command: kubectl apply -f ../../../crossplane-contrib/function-patch-and-transform/function.yaml
   # Install the Composition
   - command: kubectl apply -f ../../../apis/eks/composition.yaml
   # Wait for XRD to become "established"
-  - command: kubectl wait --for condition=established --timeout=20s xrd/xeksclusters.eks.aws.crossplane.jonashackt.io
+  - command: kubectl wait --for condition=established --timeout=20s xrd/eksclusters.eks.aws.crossplane.jonashackt.io

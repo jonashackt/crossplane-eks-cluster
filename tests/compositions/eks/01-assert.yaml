@@ -1,4 +1,4 @@
-apiVersion: eks.aws.upbound.io/v1beta1
+apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: Cluster
 metadata:
   labels:
@@ -13,7 +13,7 @@ spec:
       matchLabels:
         role: clusterRole
 ---
-apiVersion: eks.aws.upbound.io/v1beta1
+apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: ClusterAuth
 metadata:
   labels:
@@ -26,7 +26,7 @@ spec:
       matchControllerRef: true
     region: eu-central-1
 ---
-apiVersion: eks.aws.upbound.io/v1beta1
+apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: NodeGroup
 metadata:
   labels:

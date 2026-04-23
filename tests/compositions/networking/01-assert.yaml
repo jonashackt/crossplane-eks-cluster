@@ -1,4 +1,4 @@
-apiVersion: ec2.aws.upbound.io/v1beta1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: VPC
 metadata:
   labels:
@@ -11,7 +11,7 @@ spec:
     enableDnsSupport: true
     region: eu-central-1
 ---
-apiVersion: ec2.aws.upbound.io/v1beta1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: InternetGateway
 metadata:
   labels:
@@ -22,7 +22,7 @@ spec:
   forProvider:
     region: eu-central-1
 ---
-apiVersion: ec2.aws.upbound.io/v1beta1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: Subnet
 metadata:
   labels:
@@ -37,7 +37,7 @@ spec:
     mapPublicIpOnLaunch: true
     region: eu-central-1
 ---
-apiVersion: ec2.aws.upbound.io/v1beta1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: Subnet
 metadata:
   labels:
@@ -52,7 +52,7 @@ spec:
     mapPublicIpOnLaunch: true
     region: eu-central-1
 ---
-apiVersion: ec2.aws.upbound.io/v1beta1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: Subnet
 metadata:
   labels:
@@ -67,7 +67,7 @@ spec:
     mapPublicIpOnLaunch: true
     region: eu-central-1
 ---
-apiVersion: ec2.aws.upbound.io/v1beta1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: SecurityGroup
 metadata:
   labels:
