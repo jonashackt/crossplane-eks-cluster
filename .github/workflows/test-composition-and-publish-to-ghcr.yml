@@ -42,16 +42,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-        # This currently gives an error: Failed to download Crossplane CLI. Please make sure version current exists on channel stable.
-        # curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
-        # So using manual download, see https://docs.crossplane.io/latest/cli/
-        # Also using curl with --output crossplane to prevent error: Failed to create the file crossplane: Is a directory (since crossplane is a directory also)
       - name: Install Crossplane CLI
         run: |
           mkdir crossplane/cli
-          curl --output crossplane/cli/crossplane "https://releases.crossplane.io/stable/current/bin/linux_amd64/crossplane"
-          chmod +x crossplane/cli/crossplane
-          sudo mv crossplane/cli/crossplane /usr/local/bin/crossplane
+          cd crossplane/cli
+          curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
+          sudo mv crossplane /usr/local/bin/crossplane
           crossplane version
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
