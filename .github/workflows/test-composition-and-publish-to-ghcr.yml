@@ -52,6 +52,7 @@ jobs:
           curl --output crossplane/cli/crossplane "https://releases.crossplane.io/stable/current/bin/linux_amd64/crossplane"
           chmod +x crossplane/cli/crossplane
           sudo mv crossplane/cli/crossplane /usr/local/bin/crossplane
+          crossplane version
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
         run: |
