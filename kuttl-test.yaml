@@ -23,3 +23,4 @@ testDirs:
 parallel: 1 # use parallel: 1 to execute one test after another (e.g. for better readability in CI logs)
 startKIND: true
 kindContext: crossplane-eks-cluster-test
+timeout: 120
