@@ -50,9 +50,9 @@ jobs:
       - name: Install Crossplane CLI
         run: |
           mkdir crossplane/cli
-          curl --output crossplane/cli/crossplane "https://releases.crossplane.io/stable/current/bin/linux_amd64/crank"
-          chmod +x crossplane/cli/crossplane
-          sudo mv crossplane/cli/crossplane /usr/local/bin/crossplane
+          cd crossplane/cli
+          curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/main/install.sh" | sh
+          sudo mv crossplane /usr/local/bin/crossplane
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
         run: |

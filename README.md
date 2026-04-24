@@ -1316,7 +1316,7 @@ https://github.com/crossplane/crossplane/releases/tag/v1.15.0
 Install crossplane CLI:
 
 ```shell
-curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
+curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/main/install.sh" | sh
 sudo mv crossplane /usr/local/bin
 ```
 
