@@ -51,7 +51,7 @@ jobs:
         run: |
           mkdir crossplane/cli
           cd crossplane/cli
-          curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/main/install.sh" | sh
+          curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/main/install.sh" |sh
           sudo mv crossplane /usr/local/bin/crossplane
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
