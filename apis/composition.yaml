@@ -4,7 +4,7 @@ metadata:
   name: kubernetes-cluster
 spec:
   compositeTypeRef:
-    apiVersion: k8s.crossplane.jonashackt.io/v1alpha1
+    apiVersion: k8s.crossplane.jonashackt.io/v1
     kind: KubernetesCluster
   
   writeConnectionSecretsToNamespace: crossplane-system

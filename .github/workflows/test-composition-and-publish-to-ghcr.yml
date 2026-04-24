@@ -45,17 +45,17 @@ jobs:
         # This currently gives an error: Failed to download Crossplane CLI. Please make sure version current exists on channel stable.
         # curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
         # So using manual download, see https://docs.crossplane.io/latest/cli/
-        # Also using curl with --output crank to prevent error: Failed to create the file crossplane: Is a directory (since crossplane is a directory also)
+        # Also using curl with --output crossplane to prevent error: Failed to create the file crossplane: Is a directory (since crossplane is a directory also)
       - name: Install Crossplane CLI
         run: |
-          curl --output crank "https://releases.crossplane.io/stable/current/bin/linux_amd64/crank"
-          chmod +x crank
-          sudo mv crank /usr/local/bin/crossplane
+          curl --output crossplane "https://releases.crossplane.io/stable/current/bin/linux_amd64/crossplane"
+          chmod +x crossplane
+          sudo mv crossplane /usr/local/bin/crossplane
 
       - name: Build Crossplane Configuration package & publish it to GitHub Container Registry
         run: |
           echo "### Build Configuration .xpkg file"
-          crossplane xpkg build --package-root=. --examples-root="./examples" --ignore=".github/workflows/*,crossplane/install/*,crossplane/provider/*,kuttl-test.yaml,tests/compositions/eks/*,tests/compositions/networking/*" --verbose
+          crossplane xpkg build --package-root=. --examples-root="./examples" --ignore=".github/workflows/*,crossplane/install/*,crossplane/provider/*,kuttl-test.yaml,tests/compositions/eks/*,tests/compositions/networking/*,crossplane-contrib/*" --verbose
 
           echo "### Publish as OCI image to GHCR"
           crossplane xpkg push "ghcr.io/jonashackt/crossplane-eks-cluster:$CONFIGURATION_VERSION" --domain=https://ghcr.io --verbose
