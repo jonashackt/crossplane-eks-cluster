@@ -1,12 +1,10 @@
-apiVersion: meta.pkg.crossplane.io/v1alpha1
+apiVersion: meta.pkg.crossplane.io/v1
 kind: Configuration
 metadata:
   name: crossplane-eks-cluster
   annotations:
-    # Set the annotations defining the maintainer, source, license, and description of your Configuration
     meta.crossplane.io/maintainer: Jonas Hecht iam@jonashackt.io
     meta.crossplane.io/source: github.com/jonashackt/crossplane-eks-cluster
-    # Set the license of your Configuration
     meta.crossplane.io/license: MIT
     meta.crossplane.io/description: |
       Crossplane Configuration delivering CRDs to provision AWS EKS clusters.
@@ -14,11 +12,21 @@ metadata:
       It's a Nested Composition with separate AWS Networking & EKS cluster setups.
 spec:
   dependsOn:
-    - provider: xpkg.upbound.io/upbound/provider-aws-ec2
+    - apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      package: xpkg.upbound.io/upbound/provider-aws-ec2
       version: ">=v2.5.3"
-    - provider: xpkg.upbound.io/upbound/provider-aws-iam
+    - apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      package: xpkg.upbound.io/upbound/provider-aws-iam
       version: ">=v2.5.3"
-    - provider: xpkg.upbound.io/upbound/provider-aws-eks
+    - apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      package: xpkg.upbound.io/upbound/provider-aws-eks
+      version: ">=v2.5.3"
+    - apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      package: xpkg.upbound.io/upbound/provider-aws-eks
       version: ">=v2.5.3"
   crossplane:
     version: ">=v2.2.0"
