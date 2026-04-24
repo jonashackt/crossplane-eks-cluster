@@ -1317,21 +1317,16 @@ Install crossplane CLI:
 
 ```shell
 curl -sL "https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh" |sh
+sudo mv crossplane /usr/local/bin
 ```
 
-If that produces an error like `Failed to download Crossplane CLI. Please make sure version current exists on channel stable.`, try to manually craft the download link:
+
+Be sure to have the `v2.2.1` version installed as a minimum, otherwise the `crossplane beta validate` command won't work:
 
 ```shell
-curl --output crank "https://releases.crossplane.io/stable/current/bin/linux_amd64/crank"
-chmod +x crank
-sudo mv crank /usr/local/bin/crossplane
-```
-
-Be sure to have the `v1.15.0` version installed as a minimum, otherwise the `crossplane beta validate` command won't work:
-
-```shell
-crossplane --version
-v1.15.0
+crossplane version
+Client Version: v2.2.1
+Server Version: v2.2.0
 ```
 
 ### The crossplane.yaml

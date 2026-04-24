@@ -2,25 +2,32 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: Cluster
 metadata:
   labels:
-    crossplane.io/claim-name: deploy-target-eks
-    crossplane.io/claim-namespace: default
+    crossplane.io/composite: deploy-target-eks
+  namespace: default
 spec:
-  deletionPolicy: Delete
   forProvider:
     region: eu-central-1
     roleArnSelector:
       matchControllerRef: true
       matchLabels:
         role: clusterRole
+    vpcConfig:
+      endpointPrivateAccess: true
+      endpointPublicAccess: true
+      securityGroupIds:
+      - sg-04f65768e7a9e5aad
+      subnetIds:
+      - subnet-04b3c3cb1f127873c
+      - subnet-0b9ce14c15db2d384
+      - subnet-0cfbc695abf784429
 ---
 apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: ClusterAuth
 metadata:
   labels:
-    crossplane.io/claim-name: deploy-target-eks
-    crossplane.io/claim-namespace: default
+    crossplane.io/composite: deploy-target-eks
+  namespace: default
 spec:
-  deletionPolicy: Delete
   forProvider:
     clusterNameSelector:
       matchControllerRef: true
@@ -30,10 +37,9 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: NodeGroup
 metadata:
   labels:
-    crossplane.io/claim-name: deploy-target-eks
-    crossplane.io/claim-namespace: default
+    crossplane.io/composite: deploy-target-eks
+  namespace: default
 spec:
-  deletionPolicy: Delete
   forProvider:
     clusterNameSelector:
       matchControllerRef: true
@@ -45,7 +51,7 @@ spec:
         role: nodegroup
     region: eu-central-1
     scalingConfig:
-    - desiredSize: 3
+      desiredSize: 3
       maxSize: 10
       minSize: 1
     subnetIdSelector:

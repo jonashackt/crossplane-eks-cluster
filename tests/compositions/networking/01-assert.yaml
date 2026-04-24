@@ -2,8 +2,9 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: VPC
 metadata:
   labels:
-    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/composite: deploy-target-eks
     net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+  namespace: default
 spec:
   forProvider:
     cidrBlock: 10.0.0.0/16
@@ -15,10 +16,10 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: InternetGateway
 metadata:
   labels:
-    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/composite: deploy-target-eks
     net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+  namespace: default
 spec:
-  deletionPolicy: Delete
   forProvider:
     region: eu-central-1
 ---
@@ -27,9 +28,10 @@ kind: Subnet
 metadata:
   labels:
     access: public
-    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/composite: deploy-target-eks
     net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
     zone: eu-central-1a
+  namespace: default
 spec:
   forProvider:
     availabilityZone: eu-central-1a
@@ -42,9 +44,10 @@ kind: Subnet
 metadata:
   labels:
     access: public
-    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/composite: deploy-target-eks
     net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
     zone: eu-central-1b
+  namespace: default
 spec:
   forProvider:
     availabilityZone: eu-central-1b
@@ -57,9 +60,10 @@ kind: Subnet
 metadata:
   labels:
     access: public
-    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/composite: deploy-target-eks
     net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
     zone: eu-central-1c
+  namespace: default
 spec:
   forProvider:
     availabilityZone: eu-central-1c
@@ -71,9 +75,10 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: SecurityGroup
 metadata:
   labels:
-    crossplane.io/claim-name: deploy-target-eks
+    crossplane.io/composite: deploy-target-eks
     net.aws.crossplane.jonashackt.io: securitygroup-cluster
     net.aws.crossplane.jonashackt.io/network-id: deploy-target-eks
+  namespace: default
 spec:
   forProvider:
     description: cluster API server access

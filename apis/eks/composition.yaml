@@ -35,8 +35,8 @@ spec:
                 matchLabels:
                   role: clusterRole
               vpcConfig:
-                - endpointPrivateAccess: true
-                - endpointPublicAccess: true
+                endpointPrivateAccess: true
+                endpointPublicAccess: true
         patches:
           - type: PatchSet
             patchSetName: clusterconfig
@@ -47,7 +47,6 @@ spec:
             toFieldPath: spec.forProvider.vpcConfig.securityGroupIds
           - fromFieldPath: spec.parameters.subnetIds
             toFieldPath: spec.forProvider.vpcConfig.subnetIds
-
           - type: ToCompositeFieldPath
             fromFieldPath: status.atProvider.status
             toFieldPath: status.clusterStatus    
@@ -64,8 +63,8 @@ spec:
             forProvider:
               clusterNameSelector:
                 matchControllerRef: true
-            writeConnectionSecretToRef:
-              namespace: crossplane-system
+            # writeConnectionSecretToRef:
+            #   namespace: crossplane-system
         connectionDetails:
           - name: kubeconfig
             type: FromConnectionSecretKey
@@ -141,16 +140,16 @@ spec:
                 matchLabels:
                   access: public
               scalingConfig:
-                - minSize: 1
-                - maxSize: 10
-                - desiredSize: 1
+                minSize: 1
+                maxSize: 10
+                desiredSize: 1
               instanceTypes: # TODO: we can support to have that parameterized also
                 - t3.medium
         patches:
           - type: PatchSet
             patchSetName: clusterconfig
           - fromFieldPath: spec.parameters.nodes.count
-            toFieldPath: spec.forProvider.scalingConfig[0].desiredSize
+            toFieldPath: spec.forProvider.scalingConfig.desiredSize
           - fromFieldPath: spec.id
             toFieldPath: spec.forProvider.subnetIdSelector.matchLabels[net.aws.crossplane.jonashackt.io/network-id]
           - type: ToCompositeFieldPath
