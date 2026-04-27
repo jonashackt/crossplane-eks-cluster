@@ -4,7 +4,7 @@ on: [push]
 
 env:
   GHCR_PAT: ${{ secrets.GHCR_PAT }}
-  CONFIGURATION_VERSION: "v2.0.0"
+  CONFIGURATION_VERSION: "v2.0.1"
 
 jobs:
   resouces-rendering-test:
