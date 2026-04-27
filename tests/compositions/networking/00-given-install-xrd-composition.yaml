@@ -4,11 +4,7 @@ commands:
   # Keep in mind that the apis dir is way up the folder hierachy relative to this TestStep!
   # Install the XRD
   - command: kubectl apply -f ../../../apis/networking/definition.yaml
-  # Install the Function
-  - command: kubectl apply -f ../../../crossplane-contrib/function-patch-and-transform/function.yaml
   # Install the Composition
   - command: kubectl apply -f ../../../apis/networking/composition.yaml
-  # Wait for the Function to become healthy (needed for Composition Pipeline mode to render resources)
-  - command: kubectl wait --for=condition=healthy --timeout=120s function/crossplane-contrib-function-patch-and-transform
   # Wait for XRD to become "established"
   - command: kubectl wait --for condition=established --timeout=20s xrd/networkings.net.aws.crossplane.jonashackt.io

@@ -1,0 +1,5 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  # Create the XR
+  - command: kubectl apply -f ../../../examples/xr.yaml

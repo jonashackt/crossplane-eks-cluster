@@ -3,7 +3,7 @@ kind: TestSuite
 commands:
   # Install Crossplane via Helm Renovate enabled (see https://stackoverflow.com/a/71765472/4964553)
   - command: helm dependency update crossplane/install
-  - command: helm upgrade --install --force crossplane --namespace crossplane-system crossplane/install --create-namespace --wait
+  - command: helm upgrade --install crossplane --namespace crossplane-system crossplane/install --create-namespace --wait
 
   # Install the needed Crossplane Providers
   - command: kubectl apply -f crossplane/provider/upbound-provider-aws-ec2.yaml

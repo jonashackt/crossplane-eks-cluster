@@ -15,11 +15,11 @@ spec:
       endpointPrivateAccess: true
       endpointPublicAccess: true
       securityGroupIds:
-      - sg-04f65768e7a9e5aad
+      - sg-0d9a3aa9e7f60b98c
       subnetIds:
-      - subnet-04b3c3cb1f127873c
-      - subnet-0b9ce14c15db2d384
-      - subnet-0cfbc695abf784429
+      - subnet-06363785036b747f4
+      - subnet-0e099a674b75ed055
+      - subnet-03b17fc7aa1bf9fae
 ---
 apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: ClusterAuth
