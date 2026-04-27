@@ -6,8 +6,6 @@ spec:
   compositeTypeRef:
     apiVersion: k8s.crossplane.jonashackt.io/v1
     kind: KubernetesCluster
-  
-  writeConnectionSecretsToNamespace: crossplane-system
 
   mode: Pipeline
   pipeline:
@@ -54,15 +52,9 @@ spec:
             toFieldPath: spec.id
           - fromFieldPath: spec.id
             toFieldPath: metadata.annotations[crossplane.io/external-name]
-          - fromFieldPath: metadata.uid
+          # define the name of the Secret Crossplane will populate the EKSClusters kubeconfig to
+          - fromFieldPath: spec.writeConnectionSecretToRef.name
             toFieldPath: spec.writeConnectionSecretToRef.name
-            transforms:
-              - type: string
-                string:
-                  type: Format
-                  fmt: "%s-eks"
-          - fromFieldPath: spec.writeConnectionSecretToRef.namespace
-            toFieldPath: spec.writeConnectionSecretToRef.namespace
           - fromFieldPath: spec.parameters.region
             toFieldPath: spec.parameters.region
           - fromFieldPath: spec.parameters.nodes.count

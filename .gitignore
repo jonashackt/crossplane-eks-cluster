@@ -1,6 +1,7 @@
 # Don't check in credentials
 *.xpkg
 ekskubeconfig
+*-creds.conf
 
 # Exclude Helm charts lock and packages
 **/**/charts

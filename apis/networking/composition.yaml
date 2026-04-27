@@ -20,7 +20,7 @@ spec:
       kind: Resources
       resources:
       ### VPC and InternetGateway
-      - name: platform-vcp
+      - name: platform-vpc
         base:
           apiVersion: ec2.aws.m.upbound.io/v1beta1
           kind: VPC

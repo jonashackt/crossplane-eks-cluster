@@ -8,8 +8,6 @@ spec:
   names:
     kind: KubernetesCluster
     plural: kubernetesclusters
-  connectionSecretKeys:
-  - kubeconfig
   versions:
   - name: v1
     served: true
@@ -43,6 +41,12 @@ spec:
                 required:
                 - region
                 - nodes
+              writeConnectionSecretToRef:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the Secret Crossplane will populate the EKSClusters kubeconfig to
             required:
             - id
             - parameters

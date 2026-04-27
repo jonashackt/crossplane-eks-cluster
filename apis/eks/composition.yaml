@@ -19,7 +19,6 @@ spec:
       apiVersion: pt.fn.crossplane.io/v1beta1
       kind: Resources
       resources:
-      ### Cluster Configuration
       - name: eksCluster
         base:
           apiVersion: eks.aws.m.upbound.io/v1beta1
@@ -42,7 +41,7 @@ spec:
             patchSetName: clusterconfig
           - fromFieldPath: spec.id
             toFieldPath: metadata.name
-          # Using the XNetworking defined securityGroupClusterIds & subnetIds for the vpcConfig
+          # Using the Networking defined securityGroupClusterIds & subnetIds for the vpcConfig
           - fromFieldPath: spec.parameters.securityGroupClusterIds
             toFieldPath: spec.forProvider.vpcConfig.securityGroupIds
           - fromFieldPath: spec.parameters.subnetIds
@@ -63,8 +62,6 @@ spec:
             forProvider:
               clusterNameSelector:
                 matchControllerRef: true
-            # writeConnectionSecretToRef:
-            #   namespace: crossplane-system
         connectionDetails:
           - name: kubeconfig
             type: FromConnectionSecretKey
@@ -72,13 +69,47 @@ spec:
         patches:
           - type: PatchSet
             patchSetName: clusterconfig
-          - fromFieldPath: spec.id
+          - fromFieldPath: spec.writeConnectionSecretToRef.name
             toFieldPath: spec.writeConnectionSecretToRef.name
-            transforms:
-              - type: string
-                string:
-                  type: Format
-                  fmt: "%s-access"
+
+      ### NodeGroup Configuration
+      - name: nodeGroupPublic
+        base:
+          apiVersion: eks.aws.m.upbound.io/v1beta1
+          kind: NodeGroup
+          spec:
+            forProvider:
+              clusterNameSelector:
+                matchControllerRef: true
+              nodeRoleArnSelector:
+                matchControllerRef: true
+                matchLabels:
+                  role: nodegroup
+              subnetIdSelector:
+                matchLabels:
+                  access: public
+              scalingConfig:
+                minSize: 1
+                maxSize: 10
+                desiredSize: 1
+              instanceTypes: # TODO: we can support to have that parameterized also
+                - t3.medium
+        patches:
+          - type: PatchSet
+            patchSetName: clusterconfig
+          - fromFieldPath: spec.id
+            toFieldPath: spec.forProvider.clusterNameRef.name
+          - fromFieldPath: spec.parameters.nodes.count
+            toFieldPath: spec.forProvider.scalingConfig.desiredSize
+          - fromFieldPath: spec.id
+            toFieldPath: spec.forProvider.subnetIdSelector.matchLabels[net.aws.crossplane.jonashackt.io/network-id]
+          - type: ToCompositeFieldPath
+            fromFieldPath: status.atProvider.status
+            toFieldPath: status.nodePoolStatus  
+        readinessChecks:
+        - type: MatchString
+          fieldPath: status.atProvider.status
+          matchString: ACTIVE
 
 
       ### Cluster Role and Policies
@@ -122,43 +153,6 @@ spec:
                 matchLabels:
                   role: clusterRole
 
-
-      ### NodeGroup Configuration
-      - name: nodeGroupPublic
-        base:
-          apiVersion: eks.aws.m.upbound.io/v1beta1
-          kind: NodeGroup
-          spec:
-            forProvider:
-              clusterNameSelector:
-                matchControllerRef: true
-              nodeRoleArnSelector:
-                matchControllerRef: true
-                matchLabels:
-                  role: nodegroup
-              subnetIdSelector:
-                matchLabels:
-                  access: public
-              scalingConfig:
-                minSize: 1
-                maxSize: 10
-                desiredSize: 1
-              instanceTypes: # TODO: we can support to have that parameterized also
-                - t3.medium
-        patches:
-          - type: PatchSet
-            patchSetName: clusterconfig
-          - fromFieldPath: spec.parameters.nodes.count
-            toFieldPath: spec.forProvider.scalingConfig.desiredSize
-          - fromFieldPath: spec.id
-            toFieldPath: spec.forProvider.subnetIdSelector.matchLabels[net.aws.crossplane.jonashackt.io/network-id]
-          - type: ToCompositeFieldPath
-            fromFieldPath: status.atProvider.status
-            toFieldPath: status.nodePoolStatus  
-        readinessChecks:
-        - type: MatchString
-          fieldPath: status.atProvider.status
-          matchString: ACTIVE
 
       ### Node Role and Policies
       - name: nodegroupRole

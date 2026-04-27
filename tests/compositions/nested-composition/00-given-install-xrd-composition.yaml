@@ -1,0 +1,18 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  # Keep in mind that the apis dir is way up the folder hierachy relative to this TestStep!
+  # Install the XRDs
+  - command: kubectl apply -f ../../../apis/networking/definition.yaml
+  - command: kubectl apply -f ../../../apis/eks/definition.yaml
+  - command: kubectl apply -f ../../../apis/definition.yaml
+
+  # Install the Composition
+  - command: kubectl apply -f ../../../apis/networking/composition.yaml
+  - command: kubectl apply -f ../../../apis/eks/composition.yaml
+  - command: kubectl apply -f ../../../apis/composition.yaml
+
+  # Wait for XRD to become "established"
+  - command: kubectl wait --for condition=established --timeout=20s xrd/networkings.net.aws.crossplane.jonashackt.io
+  - command: kubectl wait --for condition=established --timeout=20s xrd/eksclusters.eks.aws.crossplane.jonashackt.io
+  - command: kubectl wait --for condition=established --timeout=20s xrd/kubernetesclusters.k8s.crossplane.jonashackt.io

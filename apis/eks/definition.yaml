@@ -56,7 +56,7 @@ spec:
                 - nodes
               writeConnectionSecretToRef:
                 type: object
-                description: name of the connection secret
+                description: Name of the Secret Crossplane will populate the EKSClusters kubeconfig to
                 properties:
                   name:
                     type: string
@@ -65,6 +65,7 @@ spec:
             required:
             - id
             - parameters
+            - writeConnectionSecretToRef
           # defining return values
           status:
             type: object

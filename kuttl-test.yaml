@@ -18,6 +18,11 @@ commands:
   - command: kubectl apply -f crossplane/provider/non-access-secret.yaml
   # Create ProviderConfig to consume the Secret containing AWS credentials
   - command: kubectl apply -f crossplane/provider/provider-config-aws.yaml
+
+  # Install needed Functions
+  - command: kubectl apply -f crossplane-contrib/function-patch-and-transform/function.yaml
+  # Wait for the Functions to become healthy (needed for Composition Pipeline mode to render resources)
+  - command: kubectl wait --for=condition=healthy --timeout=120s function/crossplane-contrib-function-patch-and-transform
 testDirs:
   - tests/compositions/
 parallel: 1 # use parallel: 1 to execute one test after another (e.g. for better readability in CI logs)
